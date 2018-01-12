@@ -1,5 +1,9 @@
 //! Time units
 
+use cortex_m::peripheral::DWT;
+
+use rcc::Clocks;
+
 /// Bits per second
 #[derive(Clone, Copy)]
 pub struct Bps(pub u32);
@@ -64,5 +68,50 @@ impl Into<Hertz> for MegaHertz {
 impl Into<KiloHertz> for MegaHertz {
     fn into(self) -> KiloHertz {
         KiloHertz(self.0 * 1_000)
+    }
+}
+
+/// A monotonic nondecreasing timer
+#[derive(Clone, Copy)]
+pub struct MonoTimer {
+    frequency: Hertz,
+}
+
+impl MonoTimer {
+    /// Creates a new `Monotonic` timer
+    pub fn new(mut dwt: DWT, clocks: Clocks) -> Self {
+        dwt.enable_cycle_counter();
+
+        // now the CYCCNT counter can't be stopped or resetted
+        drop(dwt);
+
+        MonoTimer {
+            frequency: clocks.sysclk(),
+        }
+    }
+
+    /// Returns the frequency at which the monotonic timer is operating at
+    pub fn frequency(&self) -> Hertz {
+        self.frequency
+    }
+
+    /// Returns an `Instant` corresponding to "now"
+    pub fn now(&self) -> Instant {
+        Instant {
+            now: DWT::get_cycle_count(),
+        }
+    }
+}
+
+/// A measurement of a monotonically nondecreasing clock
+#[derive(Clone, Copy)]
+pub struct Instant {
+    now: u32,
+}
+
+impl Instant {
+    /// Ticks elapsed since the `Instant` was created
+    pub fn elapsed(&self) -> u32 {
+        DWT::get_cycle_count().wrapping_sub(self.now)
     }
 }
