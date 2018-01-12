@@ -14,6 +14,8 @@ main() {
            --git japaric/xargo \
            --tag $tag \
            --target x86_64-unknown-linux-musl
+
+    rustup component add rust-src
 }
 
 main
