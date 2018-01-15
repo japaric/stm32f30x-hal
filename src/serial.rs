@@ -7,11 +7,11 @@ use hal::serial;
 use nb;
 use stm32f30x::{USART1, USART2, USART3};
 
-use gpio::GPIOA::{PA10, PA2, PA3, PA9};
-use gpio::GPIOB::{PB10, PB11, PB6, PB7};
-use gpio::GPIOC::{PC10, PC11, PC4, PC5};
-use gpio::GPIOD::{PD5, PD6, PD8, PD9};
-use gpio::GPIOE::{PE0, PE1, PE15};
+use gpio::gpioa::{PA10, PA2, PA3, PA9};
+use gpio::gpiob::{PB10, PB11, PB6, PB7};
+use gpio::gpioc::{PC10, PC11, PC4, PC5};
+use gpio::gpiod::{PD5, PD6, PD8, PD9};
+use gpio::gpioe::{PE0, PE1, PE15};
 use gpio::AF7;
 use rcc::{APB1, APB2, Clocks};
 use time::Bps;

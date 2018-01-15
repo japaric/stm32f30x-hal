@@ -3,9 +3,9 @@
 use cast::u8;
 use stm32f30x::{I2C1, I2C2};
 
-use gpio::GPIOA::{PA10, PA9};
-use gpio::GPIOB::{PB6, PB7, PB8, PB9};
-use gpio::GPIOF::{PF0, PF1, PF6};
+use gpio::gpioa::{PA10, PA9};
+use gpio::gpiob::{PB6, PB7, PB8, PB9};
+use gpio::gpiof::{PF0, PF1, PF6};
 use gpio::AF4;
 use hal::blocking::i2c::{Write, WriteRead};
 use rcc::{APB1, Clocks};
@@ -185,7 +185,7 @@ macro_rules! hal {
                     assert!(bytes.len() < 256 && bytes.len() > 0);
 
                     // START and prepare to send `bytes`
-                    self.i2c.cr2.write(|w| unsafe {
+                    self.i2c.cr2.write(|w| {
                         w.sadd1()
                             .bits(addr)
                             .rd_wrn()
@@ -204,7 +204,7 @@ macro_rules! hal {
                         busy_wait!(self.i2c, txis);
 
                         // put byte on the wire
-                        self.i2c.txdr.write(|w| unsafe { w.txdata().bits(*byte) });
+                        self.i2c.txdr.write(|w| w.txdata().bits(*byte));
                     }
 
                     // Wait until the last transmission is finished ???
@@ -233,7 +233,7 @@ macro_rules! hal {
                     // master is communicating)?
 
                     // START and prepare to send `bytes`
-                    self.i2c.cr2.write(|w| unsafe {
+                    self.i2c.cr2.write(|w| {
                         w.sadd1()
                             .bits(addr)
                             .rd_wrn()
@@ -252,14 +252,14 @@ macro_rules! hal {
                         busy_wait!(self.i2c, txis);
 
                         // put byte on the wire
-                        self.i2c.txdr.write(|w| unsafe { w.txdata().bits(*byte) });
+                        self.i2c.txdr.write(|w| w.txdata().bits(*byte));
                     }
 
                     // Wait until the last transmission is finished
                     busy_wait!(self.i2c, tc);
 
                     // reSTART and prepare to receive bytes into `buffer`
-                    self.i2c.cr2.write(|w| unsafe {
+                    self.i2c.cr2.write(|w| {
                         w.sadd1()
                             .bits(addr)
                             .rd_wrn()

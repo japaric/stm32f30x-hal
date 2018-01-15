@@ -88,16 +88,15 @@ pub struct AF14;
 pub struct AF15;
 
 macro_rules! gpio {
-    ($GPIOX:ident, $gpiox:ident, $iopxenr:ident, $iopxrst:ident, $PXx:ident, [
-        $($PXi:ident: ($i:expr, $MODE:ty, $AFR:ident),)+
+    ($GPIOX:ident, $gpiox:ident, $gpioy:ident, $iopxenr:ident, $iopxrst:ident, $PXx:ident, [
+        $($PXi:ident: ($pxi:ident, $i:expr, $MODE:ty, $AFR:ident),)+
     ]) => {
         /// GPIO
-        #[allow(non_snake_case)]
-        pub mod $GPIOX {
+        pub mod $gpiox {
             use core::marker::PhantomData;
 
             use hal::digital::OutputPin;
-            use stm32f30x::{$gpiox, $GPIOX};
+            use stm32f30x::{$gpioy, $GPIOX};
 
             use rcc::AHB;
             use super::{
@@ -106,21 +105,20 @@ macro_rules! gpio {
             };
 
             /// GPIO parts
-            #[allow(non_snake_case)]
             pub struct Parts {
                 /// Opaque AFRH register
-                pub AFRH: AFRH,
+                pub afrh: AFRH,
                 /// Opaque AFRL register
-                pub AFRL: AFRL,
+                pub afrl: AFRL,
                 /// Opaque MODER register
-                pub MODER: MODER,
+                pub moder: MODER,
                 /// Opaque OTYPER register
-                pub OTYPER: OTYPER,
+                pub otyper: OTYPER,
                 /// Opaque PUPDR register
-                pub PUPDR: PUPDR,
+                pub pupdr: PUPDR,
                 $(
                     /// Pin
-                    pub $PXi: $PXi<$MODE>,
+                    pub $pxi: $PXi<$MODE>,
                 )+
             }
 
@@ -133,13 +131,13 @@ macro_rules! gpio {
                     ahb.rstr().modify(|_, w| w.$iopxrst().clear_bit());
 
                     Parts {
-                        AFRH: AFRH { _0: () },
-                        AFRL: AFRL { _0: () },
-                        MODER: MODER { _0: () },
-                        OTYPER: OTYPER { _0: () },
-                        PUPDR: PUPDR { _0: () },
+                        afrh: AFRH { _0: () },
+                        afrl: AFRL { _0: () },
+                        moder: MODER { _0: () },
+                        otyper: OTYPER { _0: () },
+                        pupdr: PUPDR { _0: () },
                         $(
-                            $PXi: $PXi { _mode: PhantomData },
+                            $pxi: $PXi { _mode: PhantomData },
                         )+
                     }
                 }
@@ -151,7 +149,7 @@ macro_rules! gpio {
             }
 
             impl AFRL {
-                pub(crate) fn afr(&mut self) -> &$gpiox::AFRL {
+                pub(crate) fn afr(&mut self) -> &$gpioy::AFRL {
                     unsafe { &(*$GPIOX::ptr()).afrl }
                 }
             }
@@ -162,7 +160,7 @@ macro_rules! gpio {
             }
 
             impl AFRH {
-                pub(crate) fn afr(&mut self) -> &$gpiox::AFRH {
+                pub(crate) fn afr(&mut self) -> &$gpioy::AFRH {
                     unsafe { &(*$GPIOX::ptr()).afrh }
                 }
             }
@@ -173,7 +171,7 @@ macro_rules! gpio {
             }
 
             impl MODER {
-                pub(crate) fn moder(&mut self) -> &$gpiox::MODER {
+                pub(crate) fn moder(&mut self) -> &$gpioy::MODER {
                     unsafe { &(*$GPIOX::ptr()).moder }
                 }
             }
@@ -184,7 +182,7 @@ macro_rules! gpio {
             }
 
             impl OTYPER {
-                pub(crate) fn otyper(&mut self) -> &$gpiox::OTYPER {
+                pub(crate) fn otyper(&mut self) -> &$gpioy::OTYPER {
                     unsafe { &(*$GPIOX::ptr()).otyper }
                 }
             }
@@ -195,7 +193,7 @@ macro_rules! gpio {
             }
 
             impl PUPDR {
-                pub(crate) fn pupdr(&mut self) -> &$gpiox::PUPDR {
+                pub(crate) fn pupdr(&mut self) -> &$gpioy::PUPDR {
                     unsafe { &(*$GPIOX::ptr()).pupdr }
                 }
             }
@@ -490,109 +488,109 @@ macro_rules! gpio {
     }
 }
 
-gpio!(GPIOA, gpioa, iopaen, ioparst, PAx, [
-    PA0: (0, Input<Floating>, AFRL),
-    PA1: (1, Input<Floating>, AFRL),
-    PA2: (2, Input<Floating>, AFRL),
-    PA3: (3, Input<Floating>, AFRL),
-    PA4: (4, Input<Floating>, AFRL),
-    PA5: (5, Input<Floating>, AFRL),
-    PA6: (6, Input<Floating>, AFRL),
-    PA7: (7, Input<Floating>, AFRL),
-    PA8: (8, Input<Floating>, AFRH),
-    PA9: (9, Input<Floating>, AFRH),
-    PA10: (10, Input<Floating>, AFRH),
-    PA11: (11, Input<Floating>, AFRH),
-    PA12: (12, Input<Floating>, AFRH),
+gpio!(GPIOA, gpioa, gpioa, iopaen, ioparst, PAx, [
+    PA0: (pa0, 0, Input<Floating>, AFRL),
+    PA1: (pa1, 1, Input<Floating>, AFRL),
+    PA2: (pa2, 2, Input<Floating>, AFRL),
+    PA3: (pa3, 3, Input<Floating>, AFRL),
+    PA4: (pa4, 4, Input<Floating>, AFRL),
+    PA5: (pa5, 5, Input<Floating>, AFRL),
+    PA6: (pa6, 6, Input<Floating>, AFRL),
+    PA7: (pa7, 7, Input<Floating>, AFRL),
+    PA8: (pa8, 8, Input<Floating>, AFRH),
+    PA9: (pa9, 9, Input<Floating>, AFRH),
+    PA10: (pa10, 10, Input<Floating>, AFRH),
+    PA11: (pa11, 11, Input<Floating>, AFRH),
+    PA12: (pa12, 12, Input<Floating>, AFRH),
     // TODO these are configured as JTAG pins
     // PA13: (13, Input<Floating>),
     // PA14: (14, Input<Floating>),
     // PA15: (15, Input<Floating>),
 ]);
 
-gpio!(GPIOB, gpiob, iopben, iopbrst, PBx, [
-    PB0: (0, Input<Floating>, AFRL),
-    PB1: (1, Input<Floating>, AFRL),
-    PB2: (2, Input<Floating>, AFRL),
+gpio!(GPIOB, gpiob, gpiob, iopben, iopbrst, PBx, [
+    PB0: (pb0, 0, Input<Floating>, AFRL),
+    PB1: (pb1, 1, Input<Floating>, AFRL),
+    PB2: (pb2, 2, Input<Floating>, AFRL),
     // TODO these are configured as JTAG pins
     // PB3: (3, Input<Floating>),
     // PB4: (4, Input<Floating>),
-    PB5: (5, Input<Floating>, AFRL),
-    PB6: (6, Input<Floating>, AFRL),
-    PB7: (7, Input<Floating>, AFRL),
-    PB8: (8, Input<Floating>, AFRH),
-    PB9: (9, Input<Floating>, AFRH),
-    PB10: (10, Input<Floating>, AFRH),
-    PB11: (11, Input<Floating>, AFRH),
-    PB12: (12, Input<Floating>, AFRH),
-    PB13: (13, Input<Floating>, AFRH),
-    PB14: (14, Input<Floating>, AFRH),
-    PB15: (15, Input<Floating>, AFRH),
+    PB5: (pb5, 5, Input<Floating>, AFRL),
+    PB6: (pb6, 6, Input<Floating>, AFRL),
+    PB7: (pb7, 7, Input<Floating>, AFRL),
+    PB8: (pb8, 8, Input<Floating>, AFRH),
+    PB9: (pb9, 9, Input<Floating>, AFRH),
+    PB10: (pb10, 10, Input<Floating>, AFRH),
+    PB11: (pb11, 11, Input<Floating>, AFRH),
+    PB12: (pb12, 12, Input<Floating>, AFRH),
+    PB13: (pb13, 13, Input<Floating>, AFRH),
+    PB14: (pb14, 14, Input<Floating>, AFRH),
+    PB15: (pb15, 15, Input<Floating>, AFRH),
 ]);
 
-gpio!(GPIOC, gpioc, iopcen, iopcrst, PCx, [
-    PC0: (0, Input<Floating>, AFRL),
-    PC1: (1, Input<Floating>, AFRL),
-    PC2: (2, Input<Floating>, AFRL),
-    PC3: (3, Input<Floating>, AFRL),
-    PC4: (4, Input<Floating>, AFRL),
-    PC5: (5, Input<Floating>, AFRL),
-    PC6: (6, Input<Floating>, AFRL),
-    PC7: (7, Input<Floating>, AFRL),
-    PC8: (8, Input<Floating>, AFRH),
-    PC9: (9, Input<Floating>, AFRH),
-    PC10: (10, Input<Floating>, AFRH),
-    PC11: (11, Input<Floating>, AFRH),
-    PC12: (12, Input<Floating>, AFRH),
-    PC13: (13, Input<Floating>, AFRH),
-    PC14: (14, Input<Floating>, AFRH),
-    PC15: (15, Input<Floating>, AFRH),
+gpio!(GPIOC, gpioc, gpioc, iopcen, iopcrst, PCx, [
+    PC0: (pc0, 0, Input<Floating>, AFRL),
+    PC1: (pc1, 1, Input<Floating>, AFRL),
+    PC2: (pc2, 2, Input<Floating>, AFRL),
+    PC3: (pc3, 3, Input<Floating>, AFRL),
+    PC4: (pc4, 4, Input<Floating>, AFRL),
+    PC5: (pc5, 5, Input<Floating>, AFRL),
+    PC6: (pc6, 6, Input<Floating>, AFRL),
+    PC7: (pc7, 7, Input<Floating>, AFRL),
+    PC8: (pc8, 8, Input<Floating>, AFRH),
+    PC9: (pc9, 9, Input<Floating>, AFRH),
+    PC10: (pc10, 10, Input<Floating>, AFRH),
+    PC11: (pc11, 11, Input<Floating>, AFRH),
+    PC12: (pc12, 12, Input<Floating>, AFRH),
+    PC13: (pc13, 13, Input<Floating>, AFRH),
+    PC14: (pc14, 14, Input<Floating>, AFRH),
+    PC15: (pc15, 15, Input<Floating>, AFRH),
 ]);
 
-gpio!(GPIOD, gpioc, iopden, iopdrst, PDx, [
-    PD0: (0, Input<Floating>, AFRL),
-    PD1: (1, Input<Floating>, AFRL),
-    PD2: (2, Input<Floating>, AFRL),
-    PD3: (3, Input<Floating>, AFRL),
-    PD4: (4, Input<Floating>, AFRL),
-    PD5: (5, Input<Floating>, AFRL),
-    PD6: (6, Input<Floating>, AFRL),
-    PD7: (7, Input<Floating>, AFRL),
-    PD8: (8, Input<Floating>, AFRH),
-    PD9: (9, Input<Floating>, AFRH),
-    PD10: (10, Input<Floating>, AFRH),
-    PD11: (11, Input<Floating>, AFRH),
-    PD12: (12, Input<Floating>, AFRH),
-    PD13: (13, Input<Floating>, AFRH),
-    PD14: (14, Input<Floating>, AFRH),
-    PD15: (15, Input<Floating>, AFRH),
+gpio!(GPIOD, gpiod, gpioc, iopden, iopdrst, PDx, [
+    PD0: (pd0, 0, Input<Floating>, AFRL),
+    PD1: (pd1, 1, Input<Floating>, AFRL),
+    PD2: (pd2, 2, Input<Floating>, AFRL),
+    PD3: (pd3, 3, Input<Floating>, AFRL),
+    PD4: (pd4, 4, Input<Floating>, AFRL),
+    PD5: (pd5, 5, Input<Floating>, AFRL),
+    PD6: (pd6, 6, Input<Floating>, AFRL),
+    PD7: (pd7, 7, Input<Floating>, AFRL),
+    PD8: (pd8, 8, Input<Floating>, AFRH),
+    PD9: (pd9, 9, Input<Floating>, AFRH),
+    PD10: (pd10, 10, Input<Floating>, AFRH),
+    PD11: (pd11, 11, Input<Floating>, AFRH),
+    PD12: (pd12, 12, Input<Floating>, AFRH),
+    PD13: (pd13, 13, Input<Floating>, AFRH),
+    PD14: (pd14, 14, Input<Floating>, AFRH),
+    PD15: (pd15, 15, Input<Floating>, AFRH),
 ]);
 
-gpio!(GPIOE, gpioc, iopeen, ioperst, PEx, [
-    PE0: (0, Input<Floating>, AFRL),
-    PE1: (1, Input<Floating>, AFRL),
-    PE2: (2, Input<Floating>, AFRL),
-    PE3: (3, Input<Floating>, AFRL),
-    PE4: (4, Input<Floating>, AFRL),
-    PE5: (5, Input<Floating>, AFRL),
-    PE6: (6, Input<Floating>, AFRL),
-    PE7: (7, Input<Floating>, AFRL),
-    PE8: (8, Input<Floating>, AFRH),
-    PE9: (9, Input<Floating>, AFRH),
-    PE10: (10, Input<Floating>, AFRH),
-    PE11: (11, Input<Floating>, AFRH),
-    PE12: (12, Input<Floating>, AFRH),
-    PE13: (13, Input<Floating>, AFRH),
-    PE14: (14, Input<Floating>, AFRH),
-    PE15: (15, Input<Floating>, AFRH),
+gpio!(GPIOE, gpioe, gpioc, iopeen, ioperst, PEx, [
+    PE0: (pe0, 0, Input<Floating>, AFRL),
+    PE1: (pe1, 1, Input<Floating>, AFRL),
+    PE2: (pe2, 2, Input<Floating>, AFRL),
+    PE3: (pe3, 3, Input<Floating>, AFRL),
+    PE4: (pe4, 4, Input<Floating>, AFRL),
+    PE5: (pe5, 5, Input<Floating>, AFRL),
+    PE6: (pe6, 6, Input<Floating>, AFRL),
+    PE7: (pe7, 7, Input<Floating>, AFRL),
+    PE8: (pe8, 8, Input<Floating>, AFRH),
+    PE9: (pe9, 9, Input<Floating>, AFRH),
+    PE10: (pe10, 10, Input<Floating>, AFRH),
+    PE11: (pe11, 11, Input<Floating>, AFRH),
+    PE12: (pe12, 12, Input<Floating>, AFRH),
+    PE13: (pe13, 13, Input<Floating>, AFRH),
+    PE14: (pe14, 14, Input<Floating>, AFRH),
+    PE15: (pe15, 15, Input<Floating>, AFRH),
 ]);
 
-gpio!(GPIOF, gpioc, iopfen, iopfrst, PFx, [
-    PF0: (0, Input<Floating>, AFRL),
-    PF1: (1, Input<Floating>, AFRL),
-    PF2: (2, Input<Floating>, AFRL),
-    PF4: (4, Input<Floating>, AFRL),
-    PF6: (6, Input<Floating>, AFRL),
-    PF9: (9, Input<Floating>, AFRH),
-    PF10: (10, Input<Floating>, AFRH),
+gpio!(GPIOF, gpiof, gpioc, iopfen, iopfrst, PFx, [
+    PF0: (pf0, 0, Input<Floating>, AFRL),
+    PF1: (pf1, 1, Input<Floating>, AFRL),
+    PF2: (pf2, 2, Input<Floating>, AFRL),
+    PF4: (pf3, 4, Input<Floating>, AFRL),
+    PF6: (pf6, 6, Input<Floating>, AFRL),
+    PF9: (pf9, 9, Input<Floating>, AFRH),
+    PF10: (pf10, 10, Input<Floating>, AFRH),
 ]);

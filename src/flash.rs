@@ -11,16 +11,15 @@ pub trait FlashExt {
 impl FlashExt for FLASH {
     fn constraint(self) -> Parts {
         Parts {
-            ACR: ACR { _0: () },
+            acr: ACR { _0: () },
         }
     }
 }
 
 /// Constraint FLASH peripheral
-#[allow(non_snake_case)]
 pub struct Parts {
     /// Opaque ACR register
-    pub ACR: ACR,
+    pub acr: ACR,
 }
 
 /// Opaque ACR register

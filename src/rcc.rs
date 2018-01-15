@@ -17,10 +17,10 @@ pub trait RccExt {
 impl RccExt for RCC {
     fn constraint(self) -> Rcc {
         Rcc {
-            AHB: AHB { _0: () },
-            APB1: APB1 { _0: () },
-            APB2: APB2 { _0: () },
-            CFGR: CFGR {
+            ahb: AHB { _0: () },
+            apb1: APB1 { _0: () },
+            apb2: APB2 { _0: () },
+            cfgr: CFGR {
                 hclk: None,
                 pclk1: None,
                 pclk2: None,
@@ -31,16 +31,15 @@ impl RccExt for RCC {
 }
 
 /// Constrained RCC peripheral
-#[allow(non_snake_case)]
 pub struct Rcc {
     /// AMBA High-performance Bus
-    pub AHB: AHB,
+    pub ahb: AHB,
     /// Advanced Peripheral Bus 1
-    pub APB1: APB1,
+    pub apb1: APB1,
     /// Advanced Peripheral Bus 2
-    pub APB2: APB2,
+    pub apb2: APB2,
     /// Clock configuration
-    pub CFGR: CFGR,
+    pub cfgr: CFGR,
 }
 
 /// AMBA High-performance Bus
