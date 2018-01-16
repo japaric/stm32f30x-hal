@@ -1,13 +1,18 @@
 [package]
-name = "stm32f30x-hal"
-version = "0.1.0"
 authors = ["Jorge Aparicio <jorge@japaric.io>"]
+categories = ["embedded", "hardware-support", "no-std"]
+description = "HAL for STM32F30x microcontrollers"
+keywords = ["arm", "cortex-m", "stm32", "hal"]
+license = "MIT OR Apache-2.0"
+name = "stm32f30x-hal"
+repository = "https://github.com/japaric/stm32f30x-hal"
+version = "0.1.0"
 
 [dependencies]
-cortex-m = { git = "https://github.com/japaric/cortex-m" }
-embedded-hal = { git = "https://github.com/japaric/embedded-hal", branch = "v1" }
+cortex-m = "0.4.0"
+embedded-hal = "0.1.0"
 nb = "0.1.0"
-stm32f30x = { git = "https://github.com/japaric/stm32f30x" }
+stm32f30x = "0.6.0"
 
 [dependencies.cast]
 default-features = false

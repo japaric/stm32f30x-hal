@@ -7,84 +7,83 @@ use core::marker::PhantomData;
 
 use rcc::AHB;
 
-/// Extension trait to split a GPIO peripheral in independent pins
+/// Extension trait to split a GPIO peripheral in independent pins and registers
 pub trait GpioExt {
-    /// GPIO pins
+    /// The to split the GPIO into
     type Parts;
 
-    /// Splits the GPIO block into independent pins
+    /// Splits the GPIO block into independent pins and registers
     fn split(self, ahb: &mut AHB) -> Self::Parts;
 }
 
-// States
-/// Input mode
+/// Input mode (type state)
 pub struct Input<MODE> {
     _mode: PhantomData<MODE>,
 }
 
-/// Floating input
+/// Floating input (type state)
 pub struct Floating;
-/// Pulled down input
+/// Pulled down input (type state)
 pub struct PullDown;
-/// Pulled up input
+/// Pulled up input (type state)
 pub struct PullUp;
 
-/// Output mode
+/// Output mode (type state)
 pub struct Output<MODE> {
     _mode: PhantomData<MODE>,
 }
 
-/// Push pull output
+/// Push pull output (type state)
 pub struct PushPull;
-/// Open drain output
+/// Open drain output (type state)
 pub struct OpenDrain;
 
-/// Alternate function
+/// Alternate function 0 (type state)
 pub struct AF0;
 
-/// Alternate function
+/// Alternate function 1 (type state)
 pub struct AF1;
 
-/// Alternate function
+/// Alternate function 2 (type state)
 pub struct AF2;
 
-/// Alternate function
+/// Alternate function 3 (type state)
 pub struct AF3;
 
-/// Alternate function
+/// Alternate function 4 (type state)
 pub struct AF4;
 
-/// Alternate function
+/// Alternate function 5 (type state)
 pub struct AF5;
 
-/// Alternate function
+/// Alternate function 6 (type state)
 pub struct AF6;
 
-/// Alternate function
+/// Alternate function 7 (type state)
 pub struct AF7;
 
-/// Alternate function
+/// Alternate function 8 (type state)
 pub struct AF8;
 
-/// Alternate function
+/// Alternate function 9 (type state)
 pub struct AF9;
 
-/// Alternate function
+/// Alternate function 10 (type state)
 pub struct AF10;
 
-/// Alternate function
+/// Alternate function 11 (type state)
 pub struct AF11;
 
-/// Alternate function
+/// Alternate function 12 (type state)
 pub struct AF12;
 
-/// Alternate function
+/// Alternate function 13 (type state)
 pub struct AF13;
 
-/// Alternate function
+/// Alternate function 14 (type state)
 pub struct AF14;
 
-/// Alternate function
+/// Alternate function 15 (type state)
 pub struct AF15;
 
 macro_rules! gpio {
@@ -232,8 +231,8 @@ macro_rules! gpio {
                 }
 
                 impl<MODE> $PXi<MODE> {
-                    /// Puts the pin in alternate function 4 (AF4)
-                    pub fn as_af4(
+                    /// Configures the pin to serve as alternate function 4 (AF4)
+                    pub fn into_af4(
                         self,
                         moder: &mut MODER,
                         afr: &mut $AFR,
@@ -255,8 +254,8 @@ macro_rules! gpio {
                         $PXi { _mode: PhantomData }
                     }
 
-                    /// Puts the pin in alternate function 5 (AF5)
-                    pub fn as_af5(
+                    /// Configures the pin to serve as alternate function 5 (AF5)
+                    pub fn into_af5(
                         self,
                         moder: &mut MODER,
                         afr: &mut $AFR,
@@ -278,8 +277,8 @@ macro_rules! gpio {
                         $PXi { _mode: PhantomData }
                     }
 
-                    /// Puts the pin in alternate function 6 (AF6)
-                    pub fn as_af6(
+                    /// Configures the pin to serve as alternate function 6 (AF6)
+                    pub fn into_af6(
                         self,
                         moder: &mut MODER,
                         afr: &mut $AFR,
@@ -301,8 +300,8 @@ macro_rules! gpio {
                         $PXi { _mode: PhantomData }
                     }
 
-                    /// Puts the pin in alternate function 7 (AF7)
-                    pub fn as_af7(
+                    /// Configures the pin to serve as alternate function 7 (AF7)
+                    pub fn into_af7(
                         self,
                         moder: &mut MODER,
                         afr: &mut $AFR,
@@ -325,8 +324,8 @@ macro_rules! gpio {
                         $PXi { _mode: PhantomData }
                     }
 
-                    /// Puts the pin in floating input mode
-                    pub fn as_floating_input(
+                    /// Configures the pin to operate as a floating input pin
+                    pub fn into_floating_input(
                         self,
                         moder: &mut MODER,
                         pupdr: &mut PUPDR,
@@ -346,8 +345,8 @@ macro_rules! gpio {
                         $PXi { _mode: PhantomData }
                     }
 
-                    /// Puts the pin in pull down input mode
-                    pub fn as_pull_down_input(
+                    /// Configures the pin to operate as a pulled down input pin
+                    pub fn into_pull_down_input(
                         self,
                         moder: &mut MODER,
                         pupdr: &mut PUPDR,
@@ -367,8 +366,8 @@ macro_rules! gpio {
                         $PXi { _mode: PhantomData }
                     }
 
-                    /// Puts the pin in pull up input mode
-                    pub fn as_pull_up_input(
+                    /// Configures the pin to operate as a pulled up input pin
+                    pub fn into_pull_up_input(
                         self,
                         moder: &mut MODER,
                         pupdr: &mut PUPDR,
@@ -388,8 +387,8 @@ macro_rules! gpio {
                         $PXi { _mode: PhantomData }
                     }
 
-                    /// Puts the pin in open drain output mode
-                    pub fn as_open_drain_output(
+                    /// Configures the pin to operate as an open drain output pin
+                    pub fn into_open_drain_output(
                         self,
                         moder: &mut MODER,
                         otyper: &mut OTYPER,
@@ -410,8 +409,8 @@ macro_rules! gpio {
                         $PXi { _mode: PhantomData }
                     }
 
-                    /// Puts the pin in push pull output mode
-                    pub fn as_push_pull_output(
+                    /// Configures the pin to operate as an push pull output pin
+                    pub fn into_push_pull_output(
                         self,
                         moder: &mut MODER,
                         otyper: &mut OTYPER,
