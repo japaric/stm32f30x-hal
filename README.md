@@ -1,6 +1,6 @@
 # `stm32f30x-hal`
 
-> Implementation of the [`embedded-hal`] traits for STM32F30x microcontrollers
+> HAL for the STM32F30x family of microcontrollers
 
 [`embedded-hal`]: https://crates.io/crates/embedded-hal
 

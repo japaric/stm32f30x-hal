@@ -1,4 +1,4 @@
-//! HAL for STM32F30x microcontrollers
+//! HAL for the STM32F30x family of microcontrollers
 //!
 //! This is an implementation of the [`embedded-hal`] traits for the STM32F30x family of
 //! microcontrollers.
