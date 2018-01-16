@@ -1,4 +1,4 @@
-//! Serial Peripheral Interface
+//! Serial Peripheral Interface (SPI) bus
 
 use core::ptr;
 
@@ -26,40 +26,40 @@ pub enum Error {
 }
 
 // FIXME these should be "closed" traits
-/// Implementation detail -- DO NOT IMPLEMENT THIS TRAIT
-pub unsafe trait Sck<SPI> {}
+/// SCK pin -- DO NOT IMPLEMENT THIS TRAIT
+pub unsafe trait SckPin<SPI> {}
 
-/// Implementation detail -- DO NOT IMPLEMENT THIS TRAIT
-pub unsafe trait Miso<SPI> {}
+/// MISO pin -- DO NOT IMPLEMENT THIS TRAIT
+pub unsafe trait MisoPin<SPI> {}
 
-/// Implementation detail -- DO NOT IMPLEMENT THIS TRAIT
-pub unsafe trait Mosi<SPI> {}
+/// MOSI pin -- DO NOT IMPLEMENT THIS TRAIT
+pub unsafe trait MosiPin<SPI> {}
 
-unsafe impl Sck<SPI1> for PA5<AF5> {}
-// unsafe impl Sck<SPI1> for PB3<AF5> {}
+unsafe impl SckPin<SPI1> for PA5<AF5> {}
+// unsafe impl SckPin<SPI1> for PB3<AF5> {}
 
-unsafe impl Sck<SPI2> for PB13<AF5> {}
+unsafe impl SckPin<SPI2> for PB13<AF5> {}
 
-// unsafe impl Sck<SPI3> for PB3<AF6> {}
-unsafe impl Sck<SPI3> for PC10<AF6> {}
+// unsafe impl SckPin<SPI3> for PB3<AF6> {}
+unsafe impl SckPin<SPI3> for PC10<AF6> {}
 
-unsafe impl Miso<SPI1> for PA6<AF5> {}
-// unsafe impl Miso<SPI1> for PB4<AF5> {}
+unsafe impl MisoPin<SPI1> for PA6<AF5> {}
+// unsafe impl MisoPin<SPI1> for PB4<AF5> {}
 
-unsafe impl Miso<SPI2> for PB14<AF5> {}
+unsafe impl MisoPin<SPI2> for PB14<AF5> {}
 
-// unsafe impl Miso<SPI3> for PB4<AF6> {}
-unsafe impl Miso<SPI3> for PC11<AF6> {}
+// unsafe impl MisoPin<SPI3> for PB4<AF6> {}
+unsafe impl MisoPin<SPI3> for PC11<AF6> {}
 
-unsafe impl Mosi<SPI1> for PA7<AF5> {}
-unsafe impl Mosi<SPI1> for PB5<AF5> {}
+unsafe impl MosiPin<SPI1> for PA7<AF5> {}
+unsafe impl MosiPin<SPI1> for PB5<AF5> {}
 
-unsafe impl Mosi<SPI2> for PB15<AF5> {}
+unsafe impl MosiPin<SPI2> for PB15<AF5> {}
 
-unsafe impl Mosi<SPI3> for PB5<AF6> {}
-unsafe impl Mosi<SPI3> for PC12<AF6> {}
+unsafe impl MosiPin<SPI3> for PB5<AF6> {}
+unsafe impl MosiPin<SPI3> for PC12<AF6> {}
 
-/// SPI in full duplex master mode
+/// SPI peripheral operating in full duplex master mode
 pub struct Spi<SPI, PINS> {
     spi: SPI,
     pins: PINS,
@@ -69,7 +69,7 @@ macro_rules! hal {
     ($($SPIX:ident: ($spiX:ident, $APBX:ident, $spiXen:ident, $spiXrst:ident, $pclkX:ident),)+) => {
         $(
             impl<SCK, MISO, MOSI> Spi<$SPIX, (SCK, MISO, MOSI)> {
-                /// Configures the hardware SPI to operate in full duplex master mode
+                /// Configures the SPI peripheral to operate in full duplex master mode
                 pub fn $spiX<F>(
                     spi: $SPIX,
                     pins: (SCK, MISO, MOSI),
@@ -80,9 +80,9 @@ macro_rules! hal {
                 ) -> Self
                 where
                     F: Into<Hertz>,
-                    SCK: Sck<$SPIX>,
-                    MISO: Miso<$SPIX>,
-                    MOSI: Mosi<$SPIX>,
+                    SCK: SckPin<$SPIX>,
+                    MISO: MisoPin<$SPIX>,
+                    MOSI: MosiPin<$SPIX>,
                 {
                     // enable or reset $SPIX
                     apb2.enr().modify(|_, w| w.$spiXen().enabled());
@@ -146,7 +146,7 @@ macro_rules! hal {
                     Spi { spi, pins }
                 }
 
-                /// Releases the hardware SPI peripheral
+                /// Releases the SPI peripheral and associated pins
                 pub fn free(self) -> ($SPIX, (SCK, MISO, MOSI)) {
                     (self.spi, self.pins)
                 }
@@ -208,6 +208,7 @@ hal! {
 }
 
 // FIXME not working
+// TODO measure if this actually faster than the default implementation
 // impl ::hal::blocking::spi::Write<u8> for Spi {
 //     type Error = Error;
 

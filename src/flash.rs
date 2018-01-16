@@ -1,22 +1,22 @@
-//! FLASH
+//! Flash memory
 
 use stm32f30x::{flash, FLASH};
 
-/// Extension trait to constraint the FLASH peripheral
+/// Extension trait to constrain the FLASH peripheral
 pub trait FlashExt {
-    /// Constraints the FLASH peripheral to play nicely with the other abstractions
-    fn constraint(self) -> Parts;
+    /// Constrains the FLASH peripheral to play nicely with the other abstractions
+    fn constrain(self) -> Parts;
 }
 
 impl FlashExt for FLASH {
-    fn constraint(self) -> Parts {
+    fn constrain(self) -> Parts {
         Parts {
             acr: ACR { _0: () },
         }
     }
 }
 
-/// Constraint FLASH peripheral
+/// Constrained FLASH peripheral
 pub struct Parts {
     /// Opaque ACR register
     pub acr: ACR,

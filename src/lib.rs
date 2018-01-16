@@ -1,6 +1,15 @@
-//! Implementation of the [`embedded-hal`] traits for STM32F30x microcontrollers
+//! HAL for STM32F30x microcontrollers
+//!
+//! This is an implementation of the [`embedded-hal`] traits for the STM32F30x family of
+//! microcontrollers.
 //!
 //! [`embedded-hal`]: https://github.com/japaric/embedded-hal
+//!
+//! # Examples
+//!
+//! Examples of *using* these abstractions can be found in the documentation of the [`f3`] crate.
+//!
+//! [`f3`]: https://docs.rs/f3/0.5.0/f3/
 
 #![deny(missing_docs)]
 #![deny(warnings)]

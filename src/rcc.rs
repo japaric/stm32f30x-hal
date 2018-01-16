@@ -8,14 +8,14 @@ use stm32f30x::{rcc, RCC};
 use flash::ACR;
 use time::Hertz;
 
-/// Extension trait that constraints the `RCC` peripheral
+/// Extension trait that constrains the `RCC` peripheral
 pub trait RccExt {
-    /// Constraints the `RCC` peripheral so it plays nicely with the other abstractions
-    fn constraint(self) -> Rcc;
+    /// Constrains the `RCC` peripheral so it plays nicely with the other abstractions
+    fn constrain(self) -> Rcc;
 }
 
 impl RccExt for RCC {
-    fn constraint(self) -> Rcc {
+    fn constrain(self) -> Rcc {
         Rcc {
             ahb: AHB { _0: () },
             apb1: APB1 { _0: () },
@@ -32,17 +32,17 @@ impl RccExt for RCC {
 
 /// Constrained RCC peripheral
 pub struct Rcc {
-    /// AMBA High-performance Bus
+    /// AMBA High-performance Bus (AHB) registers
     pub ahb: AHB,
-    /// Advanced Peripheral Bus 1
+    /// Advanced Peripheral Bus 1 (APB1) registers
     pub apb1: APB1,
-    /// Advanced Peripheral Bus 2
+    /// Advanced Peripheral Bus 2 (APB2) registers
     pub apb2: APB2,
     /// Clock configuration
     pub cfgr: CFGR,
 }
 
-/// AMBA High-performance Bus
+/// AMBA High-performance Bus (AHB) registers
 pub struct AHB {
     _0: (),
 }
@@ -59,7 +59,7 @@ impl AHB {
     }
 }
 
-/// Advanced Peripheral Bus 1
+/// Advanced Peripheral Bus 1 (APB1) registers
 pub struct APB1 {
     _0: (),
 }
@@ -76,7 +76,7 @@ impl APB1 {
     }
 }
 
-/// Advanced Peripheral Bus 2
+/// Advanced Peripheral Bus 2 (APB2) registers
 pub struct APB2 {
     _0: (),
 }
@@ -266,7 +266,9 @@ impl CFGR {
     }
 }
 
-/// Clock frequencies
+/// Frozen clock frequencies
+///
+/// The existence of this value indicates that the clock configuration can no longer be changed
 #[derive(Clone, Copy)]
 pub struct Clocks {
     hclk: Hertz,
@@ -279,17 +281,17 @@ pub struct Clocks {
 }
 
 impl Clocks {
-    /// Returns the AHB frequency
+    /// Returns the frequency of the AHB
     pub fn hclk(&self) -> Hertz {
         self.hclk
     }
 
-    /// Returns the APB1 frequency
+    /// Returns the frequency of the APB1
     pub fn pclk1(&self) -> Hertz {
         self.pclk1
     }
 
-    /// Returns the APB2 frequency
+    /// Returns the frequency of the APB2
     pub fn pclk2(&self) -> Hertz {
         self.pclk2
     }

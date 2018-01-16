@@ -16,6 +16,14 @@ use gpio::AF7;
 use rcc::{APB1, APB2, Clocks};
 use time::Bps;
 
+/// Interrupt event
+pub enum Event {
+    /// New data has been received
+    Rxne,
+    /// New data can be sent
+    Txe,
+}
+
 /// Serial error
 #[derive(Debug)]
 pub enum Error {
@@ -31,10 +39,10 @@ pub enum Error {
 }
 
 // FIXME these should be "closed" traits
-/// Implementation detail - DO NOT IMPLEMENT THIS TRAIT
+/// TX pin - DO NOT IMPLEMENT THIS TRAIT
 pub unsafe trait TxPin<USART> {}
 
-/// Implementation detail - DO NOT IMPLEMENT THIS TRAIT
+/// RX pin - DO NOT IMPLEMENT THIS TRAIT
 pub unsafe trait RxPin<USART> {}
 
 unsafe impl TxPin<USART1> for PA9<AF7> {}
@@ -88,13 +96,13 @@ macro_rules! hal {
     )+) => {
         $(
             impl<TX, RX> Serial<$USARTX, (TX, RX)> {
-                /// Configures the hardware USART to operate in serial mode
+                /// Configures a USART peripheral to provide serial communication
                 pub fn $usartX(
                     usart: $USARTX,
-                    baud_rate: Bps,
                     pins: (TX, RX),
-                    apb: &mut $APB,
+                    baud_rate: Bps,
                     clocks: Clocks,
+                    apb: &mut $APB,
                 ) -> Self
                 where
                     TX: TxPin<$USARTX>,
@@ -123,6 +131,30 @@ macro_rules! hal {
                     Serial { usart, pins }
                 }
 
+                /// Starts listening for an interrupt event
+                pub fn listen(&mut self, event: Event) {
+                    match event {
+                        Event::Rxne => {
+                            self.usart.cr1.modify(|_, w| w.rxneie().set_bit())
+                        },
+                        Event::Txe => {
+                            self.usart.cr1.modify(|_, w| w.txeie().set_bit())
+                        },
+                    }
+                }
+
+                /// Starts listening for an interrupt event
+                pub fn unlisten(&mut self, event: Event) {
+                    match event {
+                        Event::Rxne => {
+                            self.usart.cr1.modify(|_, w| w.rxneie().clear_bit())
+                        },
+                        Event::Txe => {
+                            self.usart.cr1.modify(|_, w| w.txeie().clear_bit())
+                        },
+                    }
+                }
+
                 /// Splits the `Serial` abstraction into a transmitter and a receiver half
                 pub fn split(self) -> (Tx<$USARTX>, Rx<$USARTX>) {
                     (
@@ -135,7 +167,7 @@ macro_rules! hal {
                     )
                 }
 
-                /// Releases the USART peripheral
+                /// Releases the USART peripheral and associated pins
                 pub fn free(self) -> ($USARTX, (TX, RX)) {
                     (self.usart, self.pins)
                 }

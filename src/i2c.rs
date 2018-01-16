@@ -1,4 +1,4 @@
-//! Inter-Integrated Circuit bus
+//! Inter-Integrated Circuit (I2C) bus
 
 use cast::u8;
 use stm32f30x::{I2C1, I2C2};
@@ -26,28 +26,28 @@ pub enum Error {
 }
 
 // FIXME these should be "closed" traits
-/// Implementation detail -- DO NOT IMPLEMENT THESE TRAITS
-pub unsafe trait Scl<I2C> {}
+/// SCL pin -- DO NOT IMPLEMENT THIS TRAIT
+pub unsafe trait SclPin<I2C> {}
 
-/// Implementation detail -- DO NOT IMPLEMENT THESE TRAITS
-pub unsafe trait Sda<I2C> {}
+/// SDA pin -- DO NOT IMPLEMENT THIS TRAIT
+pub unsafe trait SdaPin<I2C> {}
 
-// unsafe impl Scl<I2C1> for PA15<AF4> {}
-unsafe impl Scl<I2C1> for PB6<AF4> {}
-unsafe impl Scl<I2C1> for PB8<AF4> {}
+// unsafe impl SclPin<I2C1> for PA15<AF4> {}
+unsafe impl SclPin<I2C1> for PB6<AF4> {}
+unsafe impl SclPin<I2C1> for PB8<AF4> {}
 
-unsafe impl Scl<I2C2> for PA9<AF4> {}
-unsafe impl Scl<I2C2> for PF1<AF4> {}
-unsafe impl Scl<I2C2> for PF6<AF4> {}
+unsafe impl SclPin<I2C2> for PA9<AF4> {}
+unsafe impl SclPin<I2C2> for PF1<AF4> {}
+unsafe impl SclPin<I2C2> for PF6<AF4> {}
 
-// unsafe impl Sda<I2C1> for PA14<AF4> {}
-unsafe impl Sda<I2C1> for PB7<AF4> {}
-unsafe impl Sda<I2C1> for PB9<AF4> {}
+// unsafe impl SdaPin<I2C1> for PA14<AF4> {}
+unsafe impl SdaPin<I2C1> for PB7<AF4> {}
+unsafe impl SdaPin<I2C1> for PB9<AF4> {}
 
-unsafe impl Sda<I2C2> for PA10<AF4> {}
-unsafe impl Sda<I2C2> for PF0<AF4> {}
+unsafe impl SdaPin<I2C2> for PA10<AF4> {}
+unsafe impl SdaPin<I2C2> for PF0<AF4> {}
 
-/// I2C in master mode
+/// I2C peripheral operating in master mode
 pub struct I2c<I2C, PINS> {
     i2c: I2C,
     pins: PINS,
@@ -75,7 +75,7 @@ macro_rules! hal {
     ($($I2CX:ident: ($i2cX:ident, $i2cXen:ident, $i2cXrst:ident),)+) => {
         $(
             impl<SCL, SDA> I2c<$I2CX, (SCL, SDA)> {
-                /// Configures the I2C peripheral to work as in master mode
+                /// Configures the I2C peripheral to work in master mode
                 pub fn $i2cX<F>(
                     i2c: $I2CX,
                     pins: (SCL, SDA),
@@ -84,8 +84,8 @@ macro_rules! hal {
                     apb1: &mut APB1,
                 ) -> Self where
                     F: Into<Hertz>,
-                    SCL: Scl<$I2CX>,
-                    SDA: Sda<$I2CX>,
+                    SCL: SclPin<$I2CX>,
+                    SDA: SdaPin<$I2CX>,
                 {
                     apb1.enr().modify(|_, w| w.$i2cXen().enabled());
                     apb1.rstr().modify(|_, w| w.$i2cXrst().set_bit());
@@ -171,7 +171,7 @@ macro_rules! hal {
                     I2c { i2c, pins }
                 }
 
-                /// Releases the I2C peripheral
+                /// Releases the I2C peripheral and associated pins
                 pub fn free(self) -> ($I2CX, (SCL, SDA)) {
                     (self.i2c, self.pins)
                 }
