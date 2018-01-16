@@ -3,7 +3,15 @@
 set -ex
 
 main() {
-    xargo check --target $TARGET
+    case $TARGET in
+        x86_64-unknown-linux-gnu)
+            cargo check --target $TARGET
+            ;;
+        *)
+            xargo check --target $TARGET
+            ;;
+    esac
+
 }
 
 # we don't run the "test phase" when doing deploys
