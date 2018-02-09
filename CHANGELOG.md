@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.1.2] - 2018-02-09
+
+### Fixed
+
+- `Timer::tim*` constructors so they don't disable other peripherals.
+
 ## [v0.1.1] - 2018-01-20
 
 ### Added
