@@ -181,12 +181,16 @@ macro_rules! hal {
                     let isr = unsafe { (*$USARTX::ptr()).isr.read() };
 
                     Err(if isr.pe().bit_is_set() {
+                        unsafe { (*$USARTX::ptr()).icr.modify(|_r, w| w.pecf().set_bit()) };
                         nb::Error::Other(Error::Parity)
                     } else if isr.fe().bit_is_set() {
+                        unsafe { (*$USARTX::ptr()).icr.modify(|_r, w| w.fecf().set_bit()) };
                         nb::Error::Other(Error::Framing)
                     } else if isr.nf().bit_is_set() {
+                        unsafe { (*$USARTX::ptr()).icr.modify(|_r, w| w.ncf().set_bit()) };
                         nb::Error::Other(Error::Noise)
                     } else if isr.ore().bit_is_set() {
+                        unsafe { (*$USARTX::ptr()).icr.modify(|_r, w| w.orecf().set_bit()) };
                         nb::Error::Other(Error::Overrun)
                     } else if isr.rxne().bit_is_set() {
                         // NOTE(read_volatile) see `write_volatile` below
