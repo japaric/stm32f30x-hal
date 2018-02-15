@@ -180,8 +180,9 @@ macro_rules! hal {
                     // NOTE(unsafe) atomic read with no side effects
                     let isr = unsafe { (*$USARTX::ptr()).isr.read() };
 
+                    // NOTE(read_volatile) see `write_volatile` below
+                    let data = unsafe {ptr::read_volatile(&(*$USARTX::ptr()).rdr as *const _ as *const _)};
                     Err(if isr.pe().bit_is_set() {
-                        unsafe { (*$USARTX::ptr()).icr.modify(|_r, w| w.pecf().set_bit()) };
                         nb::Error::Other(Error::Parity)
                     } else if isr.fe().bit_is_set() {
                         unsafe { (*$USARTX::ptr()).icr.modify(|_r, w| w.fecf().set_bit()) };
@@ -193,10 +194,7 @@ macro_rules! hal {
                         unsafe { (*$USARTX::ptr()).icr.modify(|_r, w| w.orecf().set_bit()) };
                         nb::Error::Other(Error::Overrun)
                     } else if isr.rxne().bit_is_set() {
-                        // NOTE(read_volatile) see `write_volatile` below
-                        return Ok(unsafe {
-                            ptr::read_volatile(&(*$USARTX::ptr()).rdr as *const _ as *const _)
-                        });
+                        return Ok(data);
                     } else {
                         nb::Error::WouldBlock
                     })
