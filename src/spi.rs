@@ -4,7 +4,7 @@ use core::ptr;
 
 use hal::spi::{FullDuplex, Mode, Phase, Polarity};
 use nb;
-use stm32f30x::{SPI1, SPI2, SPI3};
+use stm32f30x::{SPI1, SPI2, SPI3, spi1};
 
 use gpio::gpioa::{PA5, PA6, PA7};
 use gpio::gpiob::{PB13, PB14, PB15, PB5};
@@ -152,11 +152,69 @@ macro_rules! hal {
                 }
             }
 
+            impl<PINS> Spi<$SPIX, PINS> {
+                /// Read the status register, clearing any detected errors.
+                ///
+                /// Each possible SPI error (Overrun, ModeFault, or Crc) has a different sequence
+                /// for clearing it. This function will clear *all* present errors when called.
+                ///
+                /// # Returns
+                ///
+                /// The value of the status register, prior to any errors being cleared.
+                fn sr_read_and_clear_errors(&self) -> spi1::sr::R {
+                    let sr = self.spi.sr.read();
+
+                    if sr.modf().bit_is_set() {
+                        // Reference manual, pp 974:
+                        //
+                        // "Use the following sequence to clear the MODF bit:
+                        // 1. Make a read or write access to the SPIx_SR register while the MODF
+                        //    bit is set
+                        // 2. Then write to the SPIx_CR1 register."
+                        //
+                        // The extra read to SR is to ensure that the last thing done is *exactly*
+                        // the steps defined above -- simply relying on the sr read at the
+                        // function's beginning means there would be an extra read to CR1 in
+                        // between the two accesses, which might invalidate the sequence.
+                        let cr1 = self.spi.cr1.read();
+
+                        self.spi.sr.read();
+                        self.spi.cr1.write(|w| unsafe {
+                            w.bits(cr1.bits())
+                        })
+                    }
+
+                    if sr.ovr().bit_is_set() {
+                        // Reference manual, pp 974:
+                        //
+                        // "Clearing the OVR bit is done by a read access to the SPI_DR register
+                        // followed by a read access to the SPI_SR register."
+                        self.spi.dr.read();
+                        self.spi.sr.read();
+                    }
+
+                    if sr.crcerr().bit_is_set() {
+                        // SPI register map (pp 1003) shows CRCERR as a rc_w0 bit.
+                        //
+                        // Reference manual, pp 46, says of these bits:
+                        //
+                        // "Software can read as well as clear this bit by writing 0. Writing '1'
+                        // has no effect on the bit value.
+                        //
+                        // All other bits are read-only, so we can safely write the reset value
+                        // with CRCERR cleared
+                        self.spi.sr.write(|w| w.crcerr().clear_bit());
+                    }
+
+                    sr
+                }
+            }
+
             impl<PINS> FullDuplex<u8> for Spi<$SPIX, PINS> {
                 type Error = Error;
 
                 fn read(&mut self) -> nb::Result<u8, Error> {
-                    let sr = self.spi.sr.read();
+                    let sr = self.sr_read_and_clear_errors();
 
                     Err(if sr.ovr().bit_is_set() {
                         nb::Error::Other(Error::Overrun)
@@ -176,7 +234,7 @@ macro_rules! hal {
                 }
 
                 fn send(&mut self, byte: u8) -> nb::Result<(), Error> {
-                    let sr = self.spi.sr.read();
+                    let sr = self.sr_read_and_clear_errors();
 
                     Err(if sr.ovr().bit_is_set() {
                         nb::Error::Other(Error::Overrun)
