@@ -1,8 +1,4 @@
-# Based on the "trust" template v0.1.2
-# https://github.com/japaric/trust/tree/v0.1.2
-
 language: rust
-services: docker
 
 matrix:
   include:
@@ -29,10 +25,7 @@ script:
 
 after_script: set +e
 
-cache:
-  cargo: true
-  directories:
-    - $HOME/.xargo
+cache: cargo
 
 before_cache:
   # Travis can't cache files that are not readable by "others"
@@ -40,9 +33,8 @@ before_cache:
 
 branches:
   only:
-    - auto
-    - master
-    - try
+    - staging
+    - trying
 
 notifications:
   email:
