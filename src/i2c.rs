@@ -22,7 +22,8 @@ pub enum Error {
     // Pec, // SMBUS mode only
     // Timeout, // SMBUS mode only
     // Alert, // SMBUS mode only
-    #[doc(hidden)] _Extensible,
+    #[doc(hidden)]
+    _Extensible,
 }
 
 // FIXME these should be "closed" traits
@@ -68,7 +69,7 @@ macro_rules! busy_wait {
                 // try again
             }
         }
-    }
+    };
 }
 
 macro_rules! hal {

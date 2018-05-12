@@ -1,11 +1,12 @@
 //! Serial
 
-use core::ptr;
 use core::marker::PhantomData;
+use core::ptr;
 
 use hal::serial;
 use nb;
 use stm32f30x::{USART1, USART2, USART3};
+use void::Void;
 
 use gpio::gpioa::{PA10, PA2, PA3, PA9};
 use gpio::gpiob::{PB10, PB11, PB6, PB7};
@@ -35,7 +36,8 @@ pub enum Error {
     Overrun,
     /// Parity check error
     Parity,
-    #[doc(hidden)] _Extensible,
+    #[doc(hidden)]
+    _Extensible,
 }
 
 // FIXME these should be "closed" traits
@@ -200,12 +202,13 @@ macro_rules! hal {
             }
 
             impl serial::Write<u8> for Tx<$USARTX> {
-                // NOTE(!) See section "29.7 USART interrupts"; the only possible errors during transmission
-                // are: clear to send (which is disabled in this case) errors and framing errors (which only
-                // occur in SmartCard mode); neither of these apply to our hardware configuration
-                type Error = !;
+                // NOTE(Void) See section "29.7 USART interrupts"; the only possible errors during
+                // transmission are: clear to send (which is disabled in this case) errors and
+                // framing errors (which only occur in SmartCard mode); neither of these apply to
+                // our hardware configuration
+                type Error = Void;
 
-                fn flush(&mut self) -> nb::Result<(), !> {
+                fn flush(&mut self) -> nb::Result<(), Void> {
                     // NOTE(unsafe) atomic read with no side effects
                     let isr = unsafe { (*$USARTX::ptr()).isr.read() };
 
@@ -216,7 +219,7 @@ macro_rules! hal {
                     }
                 }
 
-                fn write(&mut self, byte: u8) -> nb::Result<(), !> {
+                fn write(&mut self, byte: u8) -> nb::Result<(), Void> {
                     // NOTE(unsafe) atomic read with no side effects
                     let isr = unsafe { (*$USARTX::ptr()).isr.read() };
 

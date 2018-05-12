@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.0] - 2018-05-12
+
+- This crate now compiles on the stable and beta channels.
+
+- [breaking-change] implement v0.2.0 of `embedded-hal`
+
+- [breaking-change] this crate now requires `arm-none-eabi-gcc` to be installed and available in
+  `$PATH` to compile.
+
 ## [v0.1.2] - 2018-02-09
 
 ### Fixed
@@ -23,5 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/stm32f30x-hal/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/japaric/stm32f30x-hal/compare/v0.2.0...HEAD
+[v0.2.0]: https://github.com/japaric/stm32f30x-hal/compare/v0.1.2...v0.2.0
+[v0.1.2]: https://github.com/japaric/stm32f30x-hal/compare/v0.1.1...v0.1.2
 [v0.1.1]: https://github.com/japaric/stm32f30x-hal/compare/v0.1.0...v0.1.1

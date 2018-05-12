@@ -276,7 +276,8 @@ pub struct Clocks {
     pclk2: Hertz,
     ppre1: u8,
     // TODO remove `allow`
-    #[allow(dead_code)] ppre2: u8,
+    #[allow(dead_code)]
+    ppre2: u8,
     sysclk: Hertz,
 }
 
