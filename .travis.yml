@@ -4,21 +4,27 @@ matrix:
   include:
     # Linux
     - env: TARGET=x86_64-unknown-linux-gnu
-      rust: nightly
 
     # Bare metal
     - env: TARGET=thumbv7em-none-eabi
-      rust: nightly
+      rust: beta
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
+
     - env: TARGET=thumbv7em-none-eabihf
-      rust: nightly
+      rust: beta
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
 
 before_install:
   - set -e
-  - rustup self update
 
 install:
   - bash ci/install.sh
-  - source ~/.cargo/env || true
 
 script:
   - bash ci/script.sh
