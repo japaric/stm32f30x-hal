@@ -24,3 +24,4 @@ version = "0.2.2"
 
 [features]
 rt = ["stm32f30x/rt"]
+unproven = ["embedded-hal/unproven"]

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Add an "unproven" Cargo feature that enables the "unproven" feature of the embedded-hal dependency.
+
+- Implement StatefulOutputPin, ToggleableOutputPin, and InputPin traits with "unproven" feature.
+
 ## [v0.2.0] - 2018-05-12
 
 - This crate now compiles on the stable and beta channels.
