@@ -570,7 +570,7 @@ gpio!(GPIOF, gpiof, gpioc, iopfen, iopfrst, PFx, [
     PF0: (pf0, 0, Input<Floating>, AFRL),
     PF1: (pf1, 1, Input<Floating>, AFRL),
     PF2: (pf2, 2, Input<Floating>, AFRL),
-    PF4: (pf3, 4, Input<Floating>, AFRL),
+    PF4: (pf4, 4, Input<Floating>, AFRL),
     PF6: (pf6, 6, Input<Floating>, AFRL),
     PF9: (pf9, 9, Input<Floating>, AFRH),
     PF10: (pf10, 10, Input<Floating>, AFRH),
