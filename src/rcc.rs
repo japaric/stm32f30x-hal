@@ -21,6 +21,7 @@ impl RccExt for RCC {
             apb1: APB1 { _0: () },
             apb2: APB2 { _0: () },
             cfgr: CFGR {
+                hse: None,
                 hclk: None,
                 pclk1: None,
                 pclk2: None,
@@ -93,10 +94,66 @@ impl APB2 {
     }
 }
 
+/// HSE Configuration of clock, divider and bypass
+struct HseConfig {
+    /// Clock speed of HSE
+    speed: u32,
+    /// Divider to be used, output will be HSE / divider
+    divider: u32,
+    /// If the clock driving circuitry is bypassed i.e. using an oscillator, not a crystal or
+    /// resonator
+    bypass: bool,
+}
+
+/// HSE bypass selector
+pub enum HseBypass {
+    /// If the clock driving circuitry is bypassed i.e. using an oscillator
+    Enable,
+    /// If the clock driving circuitry is not bypassed i.e. using a crystal or resonator
+    Disable,
+}
+
+/// HSE divide selector
+pub enum HseDivider {
+    /// Do not divide HSE clock
+    NoDivision,
+    /// Divide HSE clock by 2
+    DivideBy2,
+    /// Divide HSE clock by 3
+    DivideBy3,
+    /// Divide HSE clock by 4
+    DivideBy4,
+    /// Divide HSE clock by 5
+    DivideBy5,
+    /// Divide HSE clock by 6
+    DivideBy6,
+    /// Divide HSE clock by 7
+    DivideBy7,
+    /// Divide HSE clock by 8
+    DivideBy8,
+    /// Divide HSE clock by 9
+    DivideBy9,
+    /// Divide HSE clock by 10
+    DivideBy10,
+    /// Divide HSE clock by 11
+    DivideBy11,
+    /// Divide HSE clock by 12
+    DivideBy12,
+    /// Divide HSE clock by 13
+    DivideBy13,
+    /// Divide HSE clock by 14
+    DivideBy14,
+    /// Divide HSE clock by 15
+    DivideBy15,
+    /// Divide HSE clock by 16
+    DivideBy16,
+}
+
 const HSI: u32 = 8_000_000; // Hz
 
 /// Clock configuration
 pub struct CFGR {
+    hse: Option<HseConfig>,
     hclk: Option<u32>,
     pclk1: Option<u32>,
     pclk2: Option<u32>,
@@ -104,6 +161,41 @@ pub struct CFGR {
 }
 
 impl CFGR {
+    /// Sets a HseConfig that checks that the HSE divider is valid and if the clock is in bypass
+    /// mode
+    pub fn hse<F>(mut self, freq: F, divider: HseDivider, bypass: HseBypass) -> Self
+    where
+        F: Into<Hertz>,
+    {
+        self.hse = Some(HseConfig {
+            speed: freq.into().0,
+            divider: match divider {
+                HseDivider::NoDivision => 1,
+                HseDivider::DivideBy2 => 2,
+                HseDivider::DivideBy3 => 3,
+                HseDivider::DivideBy4 => 4,
+                HseDivider::DivideBy5 => 5,
+                HseDivider::DivideBy6 => 6,
+                HseDivider::DivideBy7 => 7,
+                HseDivider::DivideBy8 => 8,
+                HseDivider::DivideBy9 => 9,
+                HseDivider::DivideBy10 => 10,
+                HseDivider::DivideBy11 => 11,
+                HseDivider::DivideBy12 => 12,
+                HseDivider::DivideBy13 => 13,
+                HseDivider::DivideBy14 => 14,
+                HseDivider::DivideBy15 => 15,
+                HseDivider::DivideBy16 => 16,
+            },
+            bypass: match bypass {
+                HseBypass::Disable => false,
+                HseBypass::Enable => true,
+            },
+        });
+
+        self
+    }
+
     /// Sets a frequency for the AHB bus
     pub fn hclk<F>(mut self, freq: F) -> Self
     where
@@ -142,7 +234,14 @@ impl CFGR {
 
     /// Freezes the clock configuration, making it effective
     pub fn freeze(self, acr: &mut ACR) -> Clocks {
-        let pllmul = (2 * self.sysclk.unwrap_or(HSI)) / HSI;
+        let pllmul = match &self.hse {
+            Some(hse_cfg) => {
+                let hse = hse_cfg.speed / hse_cfg.divider;
+                self.sysclk.unwrap_or(hse) / hse // HSE has settable divider
+            }
+            None => (2 * self.sysclk.unwrap_or(HSI)) / HSI, // HSI is always divided by 2
+        };
+
         let pllmul = cmp::min(cmp::max(pllmul, 2), 16);
         let pllmul_bits = if pllmul == 2 {
             None
@@ -150,11 +249,18 @@ impl CFGR {
             Some(pllmul as u8 - 2)
         };
 
-        let sysclk = pllmul * HSI / 2;
+        let sysclk = match &self.hse {
+            Some(hse_cfg) => {
+                let hse = hse_cfg.speed / hse_cfg.divider;
+                pllmul * hse
+            }
+            None => pllmul * HSI / 2,
+        };
 
         assert!(sysclk <= 72_000_000);
 
-        let hpre_bits = self.hclk
+        let hpre_bits = self
+            .hclk
             .map(|hclk| match sysclk / hclk {
                 0 => unreachable!(),
                 1 => 0b0111,
@@ -166,14 +272,14 @@ impl CFGR {
                 96...191 => 0b1101,
                 192...383 => 0b1110,
                 _ => 0b1111,
-            })
-            .unwrap_or(0b0111);
+            }).unwrap_or(0b0111);
 
         let hclk = sysclk / (1 << (hpre_bits - 0b0111));
 
         assert!(hclk <= 72_000_000);
 
-        let ppre1_bits = self.pclk1
+        let ppre1_bits = self
+            .pclk1
             .map(|pclk1| match hclk / pclk1 {
                 0 => unreachable!(),
                 1 => 0b011,
@@ -181,15 +287,15 @@ impl CFGR {
                 3...5 => 0b101,
                 6...11 => 0b110,
                 _ => 0b111,
-            })
-            .unwrap_or(0b011);
+            }).unwrap_or(0b011);
 
         let ppre1 = 1 << (ppre1_bits - 0b011);
         let pclk1 = hclk / u32(ppre1);
 
         assert!(pclk1 <= 36_000_000);
 
-        let ppre2_bits = self.pclk2
+        let ppre2_bits = self
+            .pclk2
             .map(|pclk2| match hclk / pclk2 {
                 0 => unreachable!(),
                 1 => 0b011,
@@ -197,8 +303,7 @@ impl CFGR {
                 3...5 => 0b101,
                 6...11 => 0b110,
                 _ => 0b111,
-            })
-            .unwrap_or(0b011);
+            }).unwrap_or(0b011);
 
         let ppre2 = 1 << (ppre2_bits - 0b011);
         let pclk2 = hclk / u32(ppre2);
@@ -219,12 +324,34 @@ impl CFGR {
         }
 
         let rcc = unsafe { &*RCC::ptr() };
+        // If HSE is available, set it up
+        if let Some(hse_cfg) = &self.hse {
+            if hse_cfg.bypass {
+                // Bypass clock
+                rcc.cr.write(|w| w.hseon().set_bit().hsebyp().set_bit());
+            } else {
+                rcc.cr.write(|w| w.hseon().set_bit());
+            }
+
+            rcc.cfgr2
+                .write(|w| unsafe { w.prediv().bits(hse_cfg.divider as u8 - 1) });
+
+            while rcc.cr.read().hserdy().bit_is_clear() {}
+        }
+
         if let Some(pllmul_bits) = pllmul_bits {
             // use PLL as source
 
-            rcc.cfgr.write(|w| unsafe { w.pllmul().bits(pllmul_bits) });
+            if let Some(_) = &self.hse {
+                // HSE as PLL input
+                rcc.cfgr
+                    .write(|w| unsafe { w.pllsrc().set_bit().pllmul().bits(pllmul_bits) });
+            } else {
+                // HSI as PLL input
+                rcc.cfgr.write(|w| unsafe { w.pllmul().bits(pllmul_bits) });
+            }
 
-            rcc.cr.write(|w| w.pllon().set_bit());
+            rcc.cr.modify(|_, w| w.pllon().set_bit());
 
             while rcc.cr.read().pllrdy().bit_is_clear() {}
 
@@ -240,9 +367,14 @@ impl CFGR {
                     .bits(0b10)
             });
         } else {
-            // use HSI as source
+            let sw_bits = if let Some(_) = &self.hse {
+                // use HSE as source
+                0b01
+            } else {
+                // use HSI as source
+                0b00
+            };
 
-            // SW: HSI selected as system clock
             rcc.cfgr.write(|w| unsafe {
                 w.ppre2()
                     .bits(ppre2_bits)
@@ -251,7 +383,7 @@ impl CFGR {
                     .hpre()
                     .bits(hpre_bits)
                     .sw()
-                    .bits(0b00)
+                    .bits(sw_bits)
             });
         }
 
