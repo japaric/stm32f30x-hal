@@ -262,7 +262,7 @@ impl CFGR {
         let hpre_bits = self
             .hclk
             .map(|hclk| match sysclk / hclk {
-                0 => unreachable!(),
+                0 => panic!("Requested HCLK is higher than generated SYSCLK"),
                 1 => 0b0111,
                 2 => 0b1000,
                 3...5 => 0b1001,
@@ -272,7 +272,8 @@ impl CFGR {
                 96...191 => 0b1101,
                 192...383 => 0b1110,
                 _ => 0b1111,
-            }).unwrap_or(0b0111);
+            })
+            .unwrap_or(0b0111);
 
         let hclk = sysclk / (1 << (hpre_bits - 0b0111));
 
@@ -281,13 +282,14 @@ impl CFGR {
         let ppre1_bits = self
             .pclk1
             .map(|pclk1| match hclk / pclk1 {
-                0 => unreachable!(),
+                0 => panic!("Requested PCLK1 is higher than generated HCLK"),
                 1 => 0b011,
                 2 => 0b100,
                 3...5 => 0b101,
                 6...11 => 0b110,
                 _ => 0b111,
-            }).unwrap_or(0b011);
+            })
+            .unwrap_or(0b011);
 
         let ppre1 = 1 << (ppre1_bits - 0b011);
         let pclk1 = hclk / u32(ppre1);
@@ -297,13 +299,14 @@ impl CFGR {
         let ppre2_bits = self
             .pclk2
             .map(|pclk2| match hclk / pclk2 {
-                0 => unreachable!(),
+                0 => panic!("Requested PCLK2 is higher than generated HCLK"),
                 1 => 0b011,
                 2 => 0b100,
                 3...5 => 0b101,
                 6...11 => 0b110,
                 _ => 0b111,
-            }).unwrap_or(0b011);
+            })
+            .unwrap_or(0b011);
 
         let ppre2 = 1 << (ppre2_bits - 0b011);
         let pclk2 = hclk / u32(ppre2);
@@ -333,6 +336,9 @@ impl CFGR {
                 rcc.cr.write(|w| w.hseon().set_bit());
             }
 
+            // WARNING! Bit 0 in cfgr2 is connected to bit 17 in cfgr (due to MCU compatibility),
+            // if bit 0 is set here it must also be set in any subsequent write to cfgr and
+            // vise-versa
             rcc.cfgr2
                 .write(|w| unsafe { w.prediv().bits(hse_cfg.divider as u8 - 1) });
 
@@ -345,7 +351,7 @@ impl CFGR {
             if let Some(_) = &self.hse {
                 // HSE as PLL input
                 rcc.cfgr
-                    .write(|w| unsafe { w.pllsrc().set_bit().pllmul().bits(pllmul_bits) });
+                    .modify(|_, w| unsafe { w.pllsrc().set_bit().pllmul().bits(pllmul_bits) });
             } else {
                 // HSI as PLL input
                 rcc.cfgr.write(|w| unsafe { w.pllmul().bits(pllmul_bits) });
@@ -385,6 +391,11 @@ impl CFGR {
                     .sw()
                     .bits(sw_bits)
             });
+        }
+
+        // Running from HSE or PLL fed by HSE, disable HSI
+        if let Some(_) = &self.hse {
+            rcc.cr.modify(|_, w| w.hsion().clear_bit());
         }
 
         Clocks {
