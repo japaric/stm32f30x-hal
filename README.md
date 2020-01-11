@@ -4,6 +4,10 @@
 
 [`embedded-hal`]: https://crates.io/crates/embedded-hal
 
+***DEPRECATED:***  
+This crate is no longer actively maintained.  
+Use the [stm32f3xx-hal](https://github.com/stm32-rs/stm32f3xx-hal) crate instead.
+
 ## [Documentation](https://docs.rs/stm32f30x-hal)
 
 ## License
